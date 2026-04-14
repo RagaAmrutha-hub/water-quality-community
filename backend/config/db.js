@@ -1,17 +1,18 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config(); // Ensure it loads environment variables
+require('dotenv').config();
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'amrutha_5', // Fallback for local
-    database: process.env.DB_NAME || 'water_quality_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    // Note: Render uses Aiven MySQL Free tier which securely requires SSL headers. 
-    // Usually handled through standard string URIs or rejecting unauthorized strictly on provider side.
-});
+// Create securely dynamic pool prioritizing Cloud URI Injection
+const pool = mysql.createPool(
+    process.env.DATABASE_URL || {
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || 'amrutha_5', // Fallback for local
+        database: process.env.DB_NAME || 'water_quality_db',
+        waitForConnections: true,
+        connectionLimit: 10
+    }
+);
 
 async function initDB() {
     try {
