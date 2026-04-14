@@ -28,9 +28,7 @@ async function initDB() {
             )
         `);
 
-        // Drop broken legacy tables
-        await pool.execute(`DROP TABLE IF EXISTS water_readings`);
-        await pool.execute(`DROP TABLE IF EXISTS complaints`);
+
 
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS water_readings (
