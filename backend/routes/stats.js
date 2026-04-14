@@ -15,7 +15,7 @@ router.get('/', auth, async (req, res) => {
         const safeReadings = safeRows[0].count;
 
         // 3. Active Complaints
-        const [complaintsRows] = await db.pool.execute('SELECT COUNT(*) as count FROM complaints WHERE status != "Completed"');
+        const [complaintsRows] = await db.pool.execute('SELECT COUNT(*) as count FROM complaints WHERE status = "pending"');
         const activeComplaints = complaintsRows[0].count;
 
         res.json({
