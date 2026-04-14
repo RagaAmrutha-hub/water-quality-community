@@ -28,25 +28,35 @@ async function initDB() {
             )
         `);
 
+        // Drop broken legacy tables
+        await pool.execute(`DROP TABLE IF EXISTS water_readings`);
+        await pool.execute(`DROP TABLE IF EXISTS complaints`);
+
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS water_readings (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                color VARCHAR(20) NOT NULL,
-                temperature DECIMAL(4,2) NOT NULL,
+                user_id INT NOT NULL,
+                color VARCHAR(50) NOT NULL,
+                temperature DECIMAL(5,2) NOT NULL,
                 taste VARCHAR(50) NOT NULL,
-                status ENUM('SAFE','UNSAFE') NOT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status ENUM('SAFE','UNSAFE') DEFAULT 'UNSAFE',
+                ph VARCHAR(50) NOT NULL,
+                turbidity VARCHAR(50) NOT NULL,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS complaints (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(50) NOT NULL,
+                user_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL,
                 description TEXT,
-                photo_url VARCHAR(500),
+                photo_path VARCHAR(500),
                 status ENUM('pending','resolved') DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
 
