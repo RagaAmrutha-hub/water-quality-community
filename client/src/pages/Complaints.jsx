@@ -67,7 +67,7 @@ export default function Complaints() {
         <p>File a complaint with descriptions and photos. The association will review and update the status.</p>
       </div>
 
-      <div className="grid-cols-2">
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         {/* Form Column */}
         <div className="card">
           <h3 style={{ marginBottom: '1.5rem' }}>Submit New Complaint</h3>
@@ -139,24 +139,7 @@ export default function Complaints() {
           </form>
         </div>
 
-        {/* History Column */}
-        <div>
-          <h3 style={{ marginBottom: '1.5rem', color: 'var(--bg-slate-900)' }}>Your Reporting History</h3>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {history.map((record) => (
-              <div key={record.id} className="card" style={{ padding: '1.25rem', borderLeft: '4px solid', borderLeftColor: record.status === 'Completed' ? 'var(--success)' : record.status === 'In Progress' ? 'var(--primary-blue)' : 'var(--warning)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                  <h4 style={{ margin: 0, fontSize: '1rem' }}>{record.title}</h4>
-                  {getStatusBadge(record.status)}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  Reported on: {record.date}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
     </div>
   );

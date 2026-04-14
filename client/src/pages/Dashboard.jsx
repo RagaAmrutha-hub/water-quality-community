@@ -5,22 +5,11 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ totalReadings: 0, safeReadings: 0, activeComplaints: 0 });
+  const [stats, setStats] = useState({ totalReadings: 184, safeReadings: 172, activeComplaints: 3 });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get('/api/stats', {
-          headers: { Authorization: `Bearer ${user?.token}` }
-        });
-        if (response.data.success) {
-          setStats(response.data.stats);
-        }
-      } catch (err) {
-        console.error('Failed to fetch stats:', err);
-      }
-    };
-    if (user) fetchStats();
+    // Backend stats fetching disabled per user request
+    // Stats are now hardcoded for presentation purposes
   }, [user]);
 
   return (
