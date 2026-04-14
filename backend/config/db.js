@@ -1,0 +1,70 @@
+const mysql = require('mysql2/promise');
+require('dotenv').config(); // Ensure it loads environment variables
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'amrutha_5', // Fallback for local
+    database: process.env.DB_NAME || 'water_quality_db',
+    waitForConnections: true,
+    connectionLimit: 10,
+    // Note: Render uses Aiven MySQL Free tier which securely requires SSL headers. 
+    // Usually handled through standard string URIs or rejecting unauthorized strictly on provider side.
+});
+
+async function initDB() {
+    try {
+        // Execute each CREATE TABLE separately (FIXES syntax error)
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reg_number VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin','user') DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS water_readings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                color VARCHAR(20) NOT NULL,
+                temperature DECIMAL(4,2) NOT NULL,
+                taste VARCHAR(50) NOT NULL,
+                status ENUM('SAFE','UNSAFE') NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.execute(`
+            CREATE TABLE IF NOT EXISTS complaints (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) NOT NULL,
+                description TEXT,
+                photo_url VARCHAR(500),
+                status ENUM('pending','resolved') DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        const bcrypt = require('bcryptjs');
+
+// create admin user
+const hash = await bcrypt.hash('admin123', 10);
+        // Add demo admin user
+        await pool.execute(
+  `INSERT IGNORE INTO users (reg_number, name, password_hash, role)
+   VALUES ('ADMIN01', 'Admin', ?, 'admin')`,
+  [hash]
+);
+
+        console.log('✅ Database & Tables created successfully!');
+    } catch (error) {
+        console.error('❌ DB Init Error:', error.code, error.message);
+        throw error;
+    }
+}
+
+module.exports = { pool, initDB };

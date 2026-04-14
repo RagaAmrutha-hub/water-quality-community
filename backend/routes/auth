@@ -1,0 +1,109 @@
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const db = require('../config/db');
+const { SECRET } = require('../middleware/auth');
+
+const router = express.Router();
+
+
+// ✅ REGISTER USER
+router.post('/register', async (req, res) => {
+    const { reg_number, name, password } = req.body;
+
+    // Basic validation
+    if (!reg_number || !name || !password) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        // Check if user already exists
+        const [existing] = await db.pool.execute(
+            'SELECT * FROM users WHERE reg_number = ?',
+            [reg_number]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        // Hash password
+        const hash = await bcrypt.hash(password, 10);
+
+        // Insert user
+        const [result] = await db.pool.execute(
+            'INSERT INTO users (reg_number, name, password_hash, role) VALUES (?, ?, ?, ?)',
+            [reg_number, name, hash, 'user']
+        );
+
+        // Create token
+        const token = jwt.sign(
+            { id: result.insertId, reg_number: reg_number, role: 'user' },
+            SECRET,
+            { expiresIn: '8h' }
+        );
+
+        res.json({
+            success: true,
+            token,
+            name: name,
+            role: 'user'
+        });
+
+    } catch (err) {
+        console.error('Register Error:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+// ✅ LOGIN USER
+router.post('/login', async (req, res) => {
+    const { reg_number, password } = req.body;
+
+    if (!reg_number || !password) {
+        return res.status(400).json({ message: 'Missing credentials' });
+    }
+
+    try {
+        // Find user
+        const [rows] = await db.pool.execute(
+            'SELECT * FROM users WHERE reg_number = ?',
+            [reg_number]
+        );
+
+        if (rows.length === 0) {
+            return res.status(401).json({ message: 'Invalid user' });
+        }
+
+        const user = rows[0];
+
+        // Compare password
+        const match = await bcrypt.compare(password, user.password_hash);
+
+        if (!match) {
+            return res.status(401).json({ message: 'Wrong password' });
+        }
+
+        // Create token
+        const token = jwt.sign(
+            { id: user.id, reg_number: user.reg_number, role: user.role },
+            SECRET,
+            { expiresIn: '8h' }
+        );
+
+        res.json({
+            success: true,
+            token,
+            name: user.name,
+            role: user.role
+        });
+
+    } catch (err) {
+        console.error('Login Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+module.exports = router;
