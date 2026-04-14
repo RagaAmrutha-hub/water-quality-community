@@ -51,14 +51,14 @@ async function initDB() {
 
         const bcrypt = require('bcryptjs');
 
-// create admin user
-const hash = await bcrypt.hash('admin123', 10);
+        // create admin user
+        const hash = await bcrypt.hash('admin123', 10);
         // Add demo admin user
         await pool.execute(
-  `INSERT IGNORE INTO users (reg_number, name, password_hash, role)
+            `INSERT IGNORE INTO users (reg_number, name, password_hash, role)
    VALUES ('ADMIN01', 'Admin', ?, 'admin')`,
-  [hash]
-);
+            [hash]
+        );
 
         console.log('✅ Database & Tables created successfully!');
     } catch (error) {
