@@ -14,7 +14,7 @@ function getPoolConfig() {
                 waitForConnections: true,
                 connectionLimit: 10,
                 enableKeepAlive: true,
-                ssl: true  // Enable SSL with default settings
+                ssl: { rejectUnauthorized: false }  // Required for Aiven SSL
             };
         } catch (e) {
             console.error('❌ Invalid DATABASE_URL format:', e.message);
